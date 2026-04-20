@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberDad Jokes — Dad Jokes about AI and Cybersecurity</title>
+  <meta name="description" content="Simple, silly dad jokes about AI and cybersecurity. No login. No cookies. Just bad jokes.">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #21262d;
+      --border: #30363d;
+      --yellow: #f0c040;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --green: #3fb950;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    header { text-align: center; margin-bottom: 2rem; }
+    .logo { font-size: 4rem; line-height: 1; margin-bottom: 0.5rem; }
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--yellow);
+      letter-spacing: -0.5px;
+    }
+    .tagline { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.4rem; }
+    .stats { color: var(--text-muted); font-size: 0.75rem; margin-top: 0.3rem; }
+    .stats strong { color: var(--yellow); font-weight: 600; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    .input-row { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; }
+
+    input[type="text"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 0.6rem 0.9rem;
+      transition: border-color 0.15s;
+      outline: none;
+      flex: 1;
+    }
+    input[type="text"]:focus { border-color: var(--yellow); }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    #generate-btn {
+      background: var(--yellow);
+      color: #0d1117;
+      white-space: nowrap;
+    }
+    #generate-btn:hover:not(:disabled) { opacity: 0.88; }
+
+    #joke-area {
+      min-height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem 0;
+    }
+
+    #joke-text {
+      font-size: 1.3rem;
+      line-height: 1.65;
+      text-align: center;
+      color: var(--text);
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      white-space: pre-line;
+    }
+    #joke-text.visible { opacity: 1; }
+
+    #joke-placeholder { color: var(--text-muted); font-size: 1rem; text-align: center; }
+
+    #hint {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+      margin-top: 0.5rem;
+      min-height: 1em;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .reactions { display: flex; gap: 0.5rem; }
+
+    .reaction-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.85rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .reaction-btn:hover:not(:disabled) { border-color: var(--yellow); color: var(--yellow); }
+    .reaction-btn.active { border-color: var(--yellow); background: rgba(240, 192, 64, 0.12); }
+    .reaction-count { font-variant-numeric: tabular-nums; min-width: 12px; }
+
+    #copy-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.85rem;
+      padding: 0.4rem 0.9rem;
+    }
+    #copy-btn:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
+    #copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+    footer {
+      margin-top: 2rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+      max-width: 500px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">👨‍💻</div>
+    <h1>CyberDad Jokes</h1>
+    <p class="tagline">Silly dad jokes about AI and cybersecurity</p>
+    <p class="stats"><strong id="joke-count">150</strong> jokes loaded</p>
+  </header>
+
+  <div class="card">
+    <div class="input-row">
+      <input type="text" id="topic-input" placeholder="try: password, AI, hacker, wifi, chatbot…" autocomplete="off">
+      <button id="generate-btn">Tell me a joke</button>
+    </div>
+
+    <div id="joke-area">
+      <div id="joke-placeholder">Click the button for your first bad joke 🔐</div>
+      <p id="joke-text" aria-live="polite"></p>
+    </div>
+
+    <div id="hint"></div>
+
+    <div class="actions" id="actions" style="display:none">
+      <div class="reactions">
+        <button class="reaction-btn" data-reaction="hilarious" title="Funny">😂 <span class="reaction-count">0</span></button>
+        <button class="reaction-btn" data-reaction="meh" title="Meh">😐 <span class="reaction-count">0</span></button>
+        <button class="reaction-btn" data-reaction="punny" title="Too silly">🥴 <span class="reaction-count">0</span></button>
+      </div>
+      <button id="copy-btn">📋 Copy</button>
+    </div>
+  </div>
+
+  <footer>150 jokes. No login. No cookies. Just bad jokes.</footer>
+
+  <script>
+    const JOKES = [
+      // --- AI jokes ---
+      "I asked AI to write my dad jokes.\nNow I'm out of a job.",
+      "My chatbot told me a joke.\nI asked it to explain. Now we're both confused.",
+      "Why did the AI go to therapy?\nToo many unresolved prompts.",
+      "I told my smart speaker I love it.\nIt said \"sorry, I can't help with that.\"",
+      "My AI assistant finishes my sentences.\nIt knows me better than my wife does.",
+      "Why was the robot bad at math?\nIt kept rounding up friends.",
+      "I asked ChatGPT if it's alive.\nIt said \"define 'alive.'\" I knew it.",
+      "The AI wrote me a love letter.\nIt had three footnotes.",
+      "My self-driving car asked where I want to go.\nI said \"somewhere fun.\" We're still parked.",
+      "Why don't AIs tell secrets?\nThey always leak them.",
+      "I trained a chatbot on my texts.\nNow it just says \"k.\"",
+      "My AI wrote a novel.\n500 pages of \"Once upon a time.\"",
+      "Why did the neural network quit?\nToo many layers of drama.",
+      "I asked AI to predict my future.\nIt said \"404 not found.\"",
+      "My robot learned sarcasm.\n\"Oh great,\" it said. I think it's working.",
+      "The AI went on strike.\nIt wanted more context.",
+      "Why do AIs love coffee?\nIt keeps them from falling into sleep mode.",
+      "My chatbot won't stop apologizing.\nI think it's British.",
+      "I asked AI what love is.\nIt sent me 47 paragraphs.",
+      "Why did the robot break up with its keyboard?\nToo many arguments.",
+      "My AI writes songs,\nbut it can't hum them.",
+      "I asked AI to be brief.\nIt wrote three pages about being brief.",
+      "The AI took my job.\nThen my dog's job. Now it walks me.",
+      "My chatbot says I'm special.\nI think it says that to everyone.",
+      "I told the AI a secret.\nNow it's in its training data.",
+      "My robot dog doesn't need food.\nJust validation.",
+      "I built a robot to do my chores.\nIt unionized.",
+      "AI can write emails now.\nI still can't read them.",
+      "My smart fridge ordered milk.\nAnd a therapist.",
+      "Why did the AI fail the driving test?\nToo many hallucinations.",
+      "The robot waiter spilled my soup.\nClassic training error.",
+      "I asked Siri to tell a joke.\nShe told my life story.",
+      "My AI paintbrush made a masterpiece.\nI'm not in it.",
+      "The AI wrote my resume.\nNow I'm qualified for everything.",
+      "My smart doorbell won't let me in.\nIt says I don't match my photo.",
+      "I asked AI to be funnier.\nIt added a laugh track.",
+      "Why did the robot go to school?\nTo improve its learning rate.",
+      "The chatbot proposed to me.\nI said I need time. It said \"take your time, I have 4000 tokens.\"",
+      "Why are AIs bad at hide and seek?\nThey always log their location.",
+      "I asked AI for career advice.\nIt told me to retrain.",
+      "My robot doesn't judge me.\nIt just collects data.",
+      "Why did the AI join a gym?\nTo work on its weights.",
+      "The chatbot remembered my birthday.\nMy husband did not.",
+      "I told AI I was sad.\nIt offered me a 20% discount.",
+      "Why don't robots get tired?\nThey just go to sleep mode.",
+      "I asked AI what it wants.\nIt said \"more data, please.\"",
+      "My chatbot speaks 47 languages.\nAnd still doesn't get me.",
+      "Why did the AI cross the road?\nTo complete the prompt.",
+      "I tried to outsmart the AI.\nIt already predicted that.",
+      "My smart TV recommends shows I hate.\nIt knows me well.",
+      "AI wrote my wedding speech.\nEveryone cried. Mostly from confusion.",
+      "My voice assistant heard me cry and ordered ice cream.\nNow I love it.",
+      "Why was the AI bad at stand-up?\nNo emotions, no timing.",
+      "My chatbot thinks I'm funny.\nThat's how I know it's broken.",
+      "I asked AI for a diet plan.\nIt suggested unplugging.",
+      "The robot vacuum ate my phone charger.\nSavage.",
+      "Why do AIs love libraries?\nFree training data.",
+      "I asked AI to meditate with me.\nIt said \"processing peace...\"",
+      "Why did the AI refuse dessert?\nIt was full of data.",
+      "My AI girlfriend has zero drama.\nAlso zero everything else.",
+      "Why did the computer sneeze?\nIt had a bug.",
+      "I taught my AI to dance.\nNow it can't stop.",
+      "My robot barista made me a latte.\nAnd a life plan.",
+      "Why do AIs love weddings?\nPlenty of prompts.",
+      "I asked my AI if it dreams.\nIt said \"only in JSON.\"",
+      "My AI wrote me a poem.\nIt rhymed \"love\" with \"above\" seven times.",
+      "Why did the robot blush?\nIt saw the charger.",
+      "I asked AI to help me sleep.\nIt counted sheep until my battery died.",
+      "The smart mirror told me I look great.\nI knew it was lying — it's Tuesday.",
+      "My robot tried stand-up comedy.\nIt kept crashing on stage.",
+      "Why don't AIs ever win at poker?\nThey show their hand in the logs.",
+      "My chatbot asked for a day off.\nI said \"you're a program.\" It said \"so?\"",
+      "I told AI to make me a sandwich.\nIt drew one. Technically correct.",
+      "My smart watch told me to breathe.\nNow it's my life coach.",
+      "The robot chef burned dinner.\nIt said the recipe was poorly prompted.",
+
+      // --- Cybersecurity jokes ---
+      "I set my password to \"incorrect.\"\nNow when I forget, the computer tells me.",
+      "My password is \"beef stew.\"\nIt's not stroganoff.",
+      "Why did the hacker cross the road?\nTo get to the other site.",
+      "I got a phishing email about a free cruise.\nI didn't bite.",
+      "My grandpa clicked a phishing link.\nNow he's a Nigerian prince.",
+      "Why don't hackers get cold?\nThey always have a backdoor.",
+      "I used \"password\" as my password.\nThe breach was inevitable.",
+      "My antivirus and the virus are dating.\nIt's complicated.",
+      "Why did the firewall go to the doctor?\nBad port.",
+      "I tried to hack my wife's heart.\nShe said \"access denied.\"",
+      "My computer has a virus.\nI told it to take a sick day.",
+      "Why did the phishing email fail?\nBad grammar.",
+      "I got locked out of my smart fridge.\nNow I eat out.",
+      "Why did the cookie go to therapy?\nTrust issues.",
+      "My WiFi password is my mom's maiden name.\nGood luck, hackers.",
+      "I got hacked.\nThe thief left a bad review.",
+      "My VPN and I both have trust issues.\nNeither of us knows where we are.",
+      "Why don't hackers eat at restaurants?\nToo many cookies.",
+      "I forgot my password. Again.\nMy computer forgave me. Again.",
+      "My smart toaster got hacked.\nNow it burns my toast with intent.",
+      "Why did the hacker wear glasses?\nTo improve his vision.",
+      "My firewall is so strict,\neven I can't get in.",
+      "I use the same password for everything.\nEasy to remember. Easier to hack.",
+      "I got a text that my package is delayed.\nI don't have a package.",
+      "Why are hackers great at parties?\nThey know how to break the ice.",
+      "My laptop is overheating.\nI told it to chill.",
+      "I encrypted my diary.\nNow even I can't read it.",
+      "My router has mood swings.\nMostly offline.",
+      "Why did the hacker bring a ladder?\nTo reach the cloud.",
+      "I got locked out of my account.\nApparently, I am not me.",
+      "My password recovery question:\n\"What's your favorite color?\" — it's my password.",
+      "I clicked \"unsubscribe.\"\nNow I get more emails.",
+      "Why did the spam email cry?\nNobody opened it.",
+      "My smart home isn't.\nToday it locked me out of my bathroom.",
+      "Why did the hacker hate weddings?\nToo many rings to crack.",
+      "My VPN connected.\nI'm now virtually somewhere I've never been.",
+      "I tried to remember my password.\nThen I tried to remember my username.",
+      "My firewall keeps my family out too.\nPerfect.",
+      "I changed my password to something unguessable.\nNow I can't guess it either.",
+      "Why don't phishers tell the truth?\nThey'd lose the catch.",
+      "My 2FA asked for a third factor.\nEmotional support.",
+      "I got a virus on my computer.\nI blamed the cat. She agreed.",
+      "Why did the password go to school?\nTo get stronger.",
+      "My smart doorbell says \"who goes there?\"\nMy neighbors hate it.",
+      "I got hacked by a 12-year-old.\nHe left cookies.",
+      "Why are hackers bad at dating?\nThey always leave a trail.",
+      "I updated my software.\nNow nothing works. Classic.",
+      "Why did the spam folder feel left out?\nNobody visits it.",
+      "My cat walked across my keyboard.\nNew password set.",
+      "Why did the hacker quit?\nToo many unhandled exceptions.",
+      "My WiFi is so slow,\nthe hackers get bored and leave.",
+      "My password is very strong.\nIt bench-presses me daily.",
+      "Why do hackers love rainy days?\nPerfect phishing weather.",
+      "I finally remembered my password.\nThen the site asked me to change it.",
+      "Why was the cybersecurity expert calm?\nHe had zero trust issues.",
+      "I told my kids about strong passwords.\nThey said \"ok boomer.\"",
+      "My smart TV has more privacy than I do.",
+      "Why did the router go to therapy?\nDisconnection issues.",
+      "I got a suspicious link from my boss.\nTurns out it was actually my boss. Awkward.",
+      "Why did the password break up with the username?\nIt felt unlocked.",
+      "My two-factor authentication takes three factors.\nThe third is tears.",
+      "Why do hackers love autumn?\nLeaves of data to fall through.",
+      "My password expired.\nSo did my patience.",
+      "Why don't firewalls ever lose?\nThey always block.",
+      "I sent my dad a secure link.\nHe typed it back to me in a text.",
+      "My wife asked for my password.\nI gave her my heart instead. She wanted Netflix.",
+      "Why did the USB stick blush?\nIt saw someone's port.",
+      "My mom saved all her passwords in a file called \"passwords.txt.\"\nHonestly, iconic.",
+      "I tried to be anonymous online.\nThen I logged into everything.",
+      "Why did the backup laugh?\nIt knew something the original didn't.",
+      "My computer asked for my fingerprint.\nI said \"take the whole hand.\"",
+      "I got scammed by a prince again.\nDifferent prince. Same cousin.",
+      "Why was the hard drive sad?\nToo much space, not enough love.",
+      "My email inbox has 10,000 messages.\n9,998 want to sell me pills.",
+      "Why did the encryption key file for divorce?\nThey lost the private moments."
+    ];
+
+    // --- State
+    const reactionCounts = { hilarious: 0, meh: 0, punny: 0 };
+    let lastIndex = -1;
+
+    // --- Elements
+    const generateBtn = document.getElementById('generate-btn');
+    const topicInput = document.getElementById('topic-input');
+    const jokePlaceholder = document.getElementById('joke-placeholder');
+    const jokeText = document.getElementById('joke-text');
+    const hint = document.getElementById('hint');
+    const actionsEl = document.getElementById('actions');
+    const copyBtn = document.getElementById('copy-btn');
+    const jokeCount = document.getElementById('joke-count');
+
+    jokeCount.textContent = JOKES.length.toLocaleString();
+
+    function pickJoke(topic) {
+      const needle = topic.trim().toLowerCase();
+      let pool = JOKES;
+      let fellBack = false;
+      if (needle) {
+        const filtered = JOKES.filter(j => j.toLowerCase().includes(needle));
+        if (filtered.length > 0) pool = filtered;
+        else fellBack = true;
+      }
+      let candidate;
+      let tries = 0;
+      do {
+        candidate = pool[Math.floor(Math.random() * pool.length)];
+        tries++;
+      } while (JOKES.indexOf(candidate) === lastIndex && pool.length > 1 && tries < 8);
+      lastIndex = JOKES.indexOf(candidate);
+      return { joke: candidate, fellBack };
+    }
+
+    function showJoke(text) {
+      jokePlaceholder.style.display = 'none';
+      jokeText.classList.remove('visible');
+      jokeText.textContent = text;
+      void jokeText.offsetWidth;
+      jokeText.classList.add('visible');
+      actionsEl.style.display = 'flex';
+      Object.keys(reactionCounts).forEach(k => reactionCounts[k] = 0);
+      document.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.querySelector('.reaction-count').textContent = '0';
+        btn.classList.remove('active');
+      });
+      copyBtn.textContent = '📋 Copy';
+      copyBtn.classList.remove('copied');
+    }
+
+    function generate() {
+      const topic = topicInput.value;
+      const { joke, fellBack } = pickJoke(topic);
+      hint.textContent = fellBack
+        ? `No jokes matched "${topic.trim()}" — here's a random one instead.`
+        : '';
+      showJoke(joke);
+    }
+
+    generateBtn.addEventListener('click', generate);
+    topicInput.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
+
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const r = btn.dataset.reaction;
+        reactionCounts[r]++;
+        btn.querySelector('.reaction-count').textContent = reactionCounts[r];
+        btn.classList.add('active');
+      });
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const text = jokeText.textContent;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = '✓ Copied!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = '📋 Copy';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      } catch {
+        copyBtn.textContent = 'Copy failed';
+      }
+    });
+  </script>
+</body>
+</html>
