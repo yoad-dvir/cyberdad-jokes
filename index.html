@@ -39,8 +39,6 @@
       letter-spacing: -0.5px;
     }
     .tagline { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.4rem; }
-    .stats { color: var(--text-muted); font-size: 0.75rem; margin-top: 0.3rem; }
-    .stats strong { color: var(--yellow); font-weight: 600; }
 
     .card {
       background: var(--surface);
@@ -51,20 +49,20 @@
       max-width: 640px;
     }
 
-    .input-row { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; }
-
-    input[type="text"] {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 0.95rem;
-      padding: 0.6rem 0.9rem;
-      transition: border-color 0.15s;
-      outline: none;
-      flex: 1;
+    .topic-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+      text-align: center;
     }
-    input[type="text"]:focus { border-color: var(--yellow); }
+
+    .topics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+    }
 
     button {
       cursor: pointer;
@@ -72,18 +70,26 @@
       border-radius: 8px;
       font-size: 0.95rem;
       font-weight: 600;
-      padding: 0.6rem 1.2rem;
-      transition: opacity 0.15s, transform 0.1s;
+      transition: opacity 0.15s, transform 0.1s, background 0.15s, border-color 0.15s, color 0.15s;
     }
     button:active { transform: scale(0.97); }
     button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
-    #generate-btn {
-      background: var(--yellow);
-      color: #0d1117;
-      white-space: nowrap;
+    .topic-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.88rem;
+      font-weight: 500;
+      padding: 0.5rem 0.95rem;
+      border-radius: 24px;
     }
-    #generate-btn:hover:not(:disabled) { opacity: 0.88; }
+    .topic-chip:hover:not(:disabled) { border-color: var(--yellow); color: var(--yellow); }
+    .topic-chip.active {
+      background: var(--yellow);
+      border-color: var(--yellow);
+      color: #0d1117;
+    }
 
     #joke-area {
       min-height: 160px;
@@ -166,21 +172,16 @@
     <div class="logo">👨‍💻</div>
     <h1>CyberDad Jokes</h1>
     <p class="tagline">Silly dad jokes about AI and cybersecurity</p>
-    <p class="stats"><strong id="joke-count">150</strong> jokes loaded</p>
   </header>
 
   <div class="card">
-    <div class="input-row">
-      <input type="text" id="topic-input" placeholder="try: password, AI, hacker, wifi, chatbot…" autocomplete="off">
-      <button id="generate-btn">Tell me a joke</button>
-    </div>
+    <p class="topic-label">Pick a topic:</p>
+    <div class="topics" id="topics"></div>
 
     <div id="joke-area">
-      <div id="joke-placeholder">Click the button for your first bad joke 🔐</div>
+      <div id="joke-placeholder">Pick a topic above for your first bad joke 🔐</div>
       <p id="joke-text" aria-live="polite"></p>
     </div>
-
-    <div id="hint"></div>
 
     <div class="actions" id="actions" style="display:none">
       <div class="reactions">
@@ -192,7 +193,7 @@
     </div>
   </div>
 
-  <footer>150 jokes. No login. No cookies. Just bad jokes.</footer>
+  <footer>No login. No cookies. Just bad jokes.</footer>
 
   <script>
     const JOKES = [
@@ -351,31 +352,56 @@
       "Why did the encryption key file for divorce?\nThey lost the private moments."
     ];
 
+    // --- Topics: each has a regex that matches jokes in that category.
+    // Only topics with 3+ matching jokes are shown.
+    const TOPIC_DEFS = [
+      { label: '🎲 Random',   match: null },
+      { label: '🤖 AI',        match: /\bai\b|chatgpt|chatbot|neural|machine learning|hallucin/i },
+      { label: '🦾 Robots',    match: /robot|siri|smart speaker|voice assistant|self-driving/i },
+      { label: '🏠 Smart home',match: /smart (fridge|toaster|tv|doorbell|home|mirror|watch|speaker)/i },
+      { label: '🔑 Passwords', match: /password/i },
+      { label: '👨‍💻 Hackers',    match: /hacker|hack\b|hacked|breach/i },
+      { label: '🎣 Phishing',  match: /phish|scam|suspicious|nigerian prince/i },
+      { label: '🦠 Viruses',   match: /\bvirus|malware|antivirus/i },
+      { label: '📧 Email',     match: /email|inbox|spam|unsubscribe/i },
+      { label: '📶 WiFi & VPN',match: /wifi|vpn|router|firewall/i },
+    ];
+
+    // Filter out topics that have no matching jokes (safety — shouldn't happen)
+    const TOPICS = TOPIC_DEFS.filter(t =>
+      t.match === null || JOKES.some(j => t.match.test(j))
+    );
+
     // --- State
     const reactionCounts = { hilarious: 0, meh: 0, punny: 0 };
     let lastIndex = -1;
+    let activeTopic = null;
 
     // --- Elements
-    const generateBtn = document.getElementById('generate-btn');
-    const topicInput = document.getElementById('topic-input');
+    const topicsEl = document.getElementById('topics');
     const jokePlaceholder = document.getElementById('joke-placeholder');
     const jokeText = document.getElementById('joke-text');
-    const hint = document.getElementById('hint');
     const actionsEl = document.getElementById('actions');
     const copyBtn = document.getElementById('copy-btn');
-    const jokeCount = document.getElementById('joke-count');
 
-    jokeCount.textContent = JOKES.length.toLocaleString();
+    // Build topic chips
+    TOPICS.forEach((topic, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'topic-chip';
+      btn.textContent = topic.label;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.topic-chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeTopic = topic;
+        generate();
+      });
+      topicsEl.appendChild(btn);
+    });
 
-    function pickJoke(topic) {
-      const needle = topic.trim().toLowerCase();
-      let pool = JOKES;
-      let fellBack = false;
-      if (needle) {
-        const filtered = JOKES.filter(j => j.toLowerCase().includes(needle));
-        if (filtered.length > 0) pool = filtered;
-        else fellBack = true;
-      }
+    function pickJoke() {
+      const pool = (activeTopic && activeTopic.match)
+        ? JOKES.filter(j => activeTopic.match.test(j))
+        : JOKES;
       let candidate;
       let tries = 0;
       do {
@@ -383,7 +409,7 @@
         tries++;
       } while (JOKES.indexOf(candidate) === lastIndex && pool.length > 1 && tries < 8);
       lastIndex = JOKES.indexOf(candidate);
-      return { joke: candidate, fellBack };
+      return candidate;
     }
 
     function showJoke(text) {
@@ -403,16 +429,8 @@
     }
 
     function generate() {
-      const topic = topicInput.value;
-      const { joke, fellBack } = pickJoke(topic);
-      hint.textContent = fellBack
-        ? `No jokes matched "${topic.trim()}" — here's a random one instead.`
-        : '';
-      showJoke(joke);
+      showJoke(pickJoke());
     }
-
-    generateBtn.addEventListener('click', generate);
-    topicInput.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
 
     document.querySelectorAll('.reaction-btn').forEach(btn => {
       btn.addEventListener('click', () => {
