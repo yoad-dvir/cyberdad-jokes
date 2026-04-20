@@ -443,6 +443,7 @@
     <span class="seg"><span class="k">PID:</span> <span class="v">1337</span></span>
     <span class="seg"><span class="k">ENTRIES:</span> <span class="v" id="sb-entries">220</span></span>
     <span class="seg"><span class="k">TOPIC:</span> <span class="amber" id="sb-topic">random</span></span>
+    <span class="seg"><span class="k">LIKES:</span> <span class="v" id="sb-likes">0</span> <span class="k">/</span> <span class="v" id="sb-meh">0</span> <span class="k">/</span> <span class="v" id="sb-ugh">0</span></span>
     <span class="seg"><span class="k">UP:</span> <span class="v" id="sb-up">0:00:00</span> <span class="blink">█</span></span>
   </div>
 
@@ -779,11 +780,41 @@
       t.match === null || JOKES.filter(j => t.match.test(j)).length >= MIN_JOKES
     );
 
+    // ---------- Persistent reactions (localStorage)
+    const STORAGE_KEY = 'cyberdad.reactions.v1';
+    function hashJoke(s) {
+      let h = 5381;
+      for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+      return h.toString(36);
+    }
+    function loadReactions() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+      catch { return {}; }
+    }
+    function saveReactions() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(reactionsDB)); } catch {}
+    }
+    const reactionsDB = loadReactions();
+    function countsFor(id) {
+      return reactionsDB[id] || { hilarious: 0, meh: 0, punny: 0 };
+    }
+    function totals() {
+      const t = { hilarious: 0, meh: 0, punny: 0 };
+      for (const id in reactionsDB) {
+        const r = reactionsDB[id];
+        t.hilarious += r.hilarious | 0;
+        t.meh       += r.meh       | 0;
+        t.punny     += r.punny     | 0;
+      }
+      return t;
+    }
+
     // ---------- State
-    const reactionCounts = { hilarious: 0, meh: 0, punny: 0 };
     let lastIndex = -1;
     let activeTopic = TOPICS[0]; // start on random
     let typer = null; // in-flight typer handle
+    let currentJokeId = null;
+    let currentJokeText = null;
 
     // ---------- Elements
     const topicsEl   = document.getElementById('topics');
@@ -796,6 +827,9 @@
     const bootCount  = document.getElementById('boot-count');
     const sudoBanner = document.getElementById('sudo-banner');
     const sbUp       = document.getElementById('sb-up');
+    const sbLikes    = document.getElementById('sb-likes');
+    const sbMeh      = document.getElementById('sb-meh');
+    const sbUgh      = document.getElementById('sb-ugh');
 
     sbEntries.textContent = JOKES.length;
     bootCount.textContent = JOKES.length;
@@ -860,20 +894,32 @@
       return candidate;
     }
 
-    function resetReactions() {
-      Object.keys(reactionCounts).forEach(k => reactionCounts[k] = 0);
-      document.querySelectorAll('.key-btn[data-reaction]').forEach(btn => {
-        btn.querySelector('.n').textContent = '0';
-        btn.classList.remove('active');
-      });
+    function refreshReactionsUI() {
+      const counts = countsFor(currentJokeId);
+      for (const key of ['hilarious', 'meh', 'punny']) {
+        const btn = document.querySelector(`.key-btn[data-reaction="${key}"]`);
+        if (!btn) continue;
+        btn.querySelector('.n').textContent = counts[key];
+        btn.classList.toggle('active', counts[key] > 0);
+      }
+      const t = totals();
+      sbLikes.textContent = t.hilarious;
+      sbMeh.textContent   = t.meh;
+      sbUgh.textContent   = t.punny;
     }
 
     function generate() {
-      typeOut(pickJoke());
-      resetReactions();
+      const text = pickJoke();
+      currentJokeText = text;
+      currentJokeId = hashJoke(text);
+      typeOut(text);
+      refreshReactionsUI();
       copyBtn.classList.remove('copied');
-      copyBtn.querySelector('.keycap').nextSibling && (copyBtn.innerHTML = `<span class="keycap">C</span>copy`);
+      copyBtn.innerHTML = `<span class="keycap">C</span>copy`;
     }
+
+    // Initial totals display (before any joke shown)
+    refreshReactionsUI();
 
     function selectTopic(topic) {
       activeTopic = topic;
@@ -881,13 +927,17 @@
       generate();
     }
 
-    // ---------- Reactions
+    // ---------- Reactions (persisted per joke)
     document.querySelectorAll('.key-btn[data-reaction]').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (!currentJokeId) return;
         const r = btn.dataset.reaction;
-        reactionCounts[r]++;
-        btn.querySelector('.n').textContent = reactionCounts[r];
-        btn.classList.add('active');
+        if (!reactionsDB[currentJokeId]) {
+          reactionsDB[currentJokeId] = { hilarious: 0, meh: 0, punny: 0 };
+        }
+        reactionsDB[currentJokeId][r]++;
+        saveReactions();
+        refreshReactionsUI();
       });
     });
 
