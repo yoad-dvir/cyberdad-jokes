@@ -268,6 +268,31 @@
       font-size: 15px;
     }
 
+    .cache-line {
+      margin-top: 0.7rem;
+      padding-left: 1.3em;
+      font-size: 12.5px;
+      letter-spacing: 0.04em;
+      color: var(--amber);
+      min-height: 1em;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .cache-line.show { opacity: 1; }
+    .cache-line .tag {
+      display: inline-block;
+      border: 1px solid var(--amber-dim);
+      padding: 0.05em 0.45em;
+      margin-right: 0.55em;
+      color: var(--amber);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+    }
+    .cache-line .new {
+      color: var(--phosphor-mid);
+      border-color: var(--phosphor-darkest);
+    }
+
     /* ---------- Controls (keyboard row) ---------- */
     .controls {
       margin-top: 1.1rem;
@@ -380,6 +405,7 @@
       <div class="row"><span class="t">[0.034]</span> mounting /humor filesystem <span class="t">..........</span> <span class="ok">[ OK ]</span></div>
       <div class="row"><span class="t">[0.056]</span> calibrating dad energy levels <span class="t">.......</span> <span class="crit">[CRIT]</span>  OVER 9000</div>
       <div class="row"><span class="t">[0.081]</span> entropy source: <span class="amber">stale pun generator</span> <span class="t">.</span> <span class="warn">[WARN]</span></div>
+      <div class="row"><span class="t">[0.094]</span> restoring reactions from ./localStorage <span class="ok">[ OK ]</span> <span id="boot-rxn">0 rated</span></div>
       <div class="row"><span class="t">[0.102]</span> <span class="cursor">login: anon@cyberdad:~$</span></div>
     </div>
 
@@ -419,6 +445,7 @@
             <span class="g">&gt;</span>
             <p id="joke-text" aria-live="polite"><span class="empty-hint">awaiting input. press any topic key <span class="caret">█</span></span></p>
           </div>
+          <div id="cache-line" class="cache-line"></div>
         </div>
       </section>
 
@@ -830,6 +857,18 @@
     const sbLikes    = document.getElementById('sb-likes');
     const sbMeh      = document.getElementById('sb-meh');
     const sbUgh      = document.getElementById('sb-ugh');
+    const cacheLine  = document.getElementById('cache-line');
+    const bootRxn    = document.getElementById('boot-rxn');
+
+    // Boot log: show restored reaction count
+    (() => {
+      const count = Object.keys(reactionsDB).length;
+      const t = totals();
+      const total = t.hilarious + t.meh + t.punny;
+      bootRxn.textContent = count === 0
+        ? 'no cache — fresh session'
+        : `${count} joke${count===1?'':'s'} · ${total} reaction${total===1?'':'s'}`;
+    })();
 
     sbEntries.textContent = JOKES.length;
     bootCount.textContent = JOKES.length;
@@ -906,6 +945,28 @@
       sbLikes.textContent = t.hilarious;
       sbMeh.textContent   = t.meh;
       sbUgh.textContent   = t.punny;
+
+      // Cache-line indicator under the joke
+      if (!currentJokeId) {
+        cacheLine.classList.remove('show');
+        cacheLine.innerHTML = '';
+        return;
+      }
+      const total = counts.hilarious + counts.meh + counts.punny;
+      if (total > 0) {
+        const parts = [];
+        if (counts.hilarious) parts.push(`😂×${counts.hilarious}`);
+        if (counts.meh)       parts.push(`😐×${counts.meh}`);
+        if (counts.punny)     parts.push(`🥴×${counts.punny}`);
+        cacheLine.innerHTML =
+          `<span class="tag">CACHED</span>` +
+          `you rated this joke <span style="color:var(--amber)">${parts.join(' · ')}</span> · id:${currentJokeId}`;
+      } else {
+        cacheLine.innerHTML =
+          `<span class="tag new">NEW</span>` +
+          `<span style="color:var(--text-dim)">not yet rated · id:${currentJokeId}</span>`;
+      }
+      cacheLine.classList.add('show');
     }
 
     function generate() {
