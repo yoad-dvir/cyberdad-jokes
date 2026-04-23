@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <radialGradient id="vign" cx="50%" cy="50%" r="70%">
+      <stop offset="70%" stop-color="#050a08" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.85"/>
+    </radialGradient>
+    <pattern id="scan" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="2" fill="#0aff9d" opacity="0.03"/>
+    </pattern>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#050a08"/>
+  <rect width="1200" height="630" fill="url(#scan)"/>
+  <rect width="1200" height="630" fill="url(#vign)"/>
+
+  <!-- Top bar -->
+  <rect x="0" y="0" width="1200" height="38" fill="#0a1510" stroke="#183326" stroke-width="1"/>
+  <text x="24" y="24" font-family="'IBM Plex Mono', monospace" font-size="13" fill="#5a9b7a">anon@cyberdad:~$</text>
+  <text x="1000" y="24" font-family="'IBM Plex Mono', monospace" font-size="13" fill="#c99a2e">ENTRIES: 270</text>
+
+  <!-- Boot log -->
+  <g font-family="'IBM Plex Mono', monospace" font-size="14" fill="#7fe0b8">
+    <text x="60" y="80"><tspan fill="#4a7a60">[0.000]</tspan> cyberdad kernel 4.2.0-groan.x86_64 initializing...</text>
+    <text x="60" y="105"><tspan fill="#4a7a60">[0.012]</tspan> loading ./jokes.dat  <tspan fill="#4a7a60">..............</tspan>  <tspan fill="#0aff9d">[ OK ]</tspan>  270 entries</text>
+    <text x="60" y="130"><tspan fill="#4a7a60">[0.034]</tspan> mounting /humor filesystem  <tspan fill="#4a7a60">.........</tspan>  <tspan fill="#0aff9d">[ OK ]</tspan></text>
+    <text x="60" y="155"><tspan fill="#4a7a60">[0.056]</tspan> calibrating dad energy levels  <tspan fill="#4a7a60">......</tspan>  <tspan fill="#ff5a5a">[CRIT]</tspan>  OVER 9000</text>
+    <text x="60" y="180"><tspan fill="#4a7a60">[0.081]</tspan> entropy source: <tspan fill="#c99a2e">stale pun generator</tspan> . <tspan fill="#ffb347">[WARN]</tspan></text>
+  </g>
+
+  <!-- Big ASCII-style logo -->
+  <g font-family="'VT323', 'Courier New', monospace" font-size="130" fill="#0aff9d" filter="url(#glow)" letter-spacing="8">
+    <text x="60" y="330">CYBERDAD</text>
+  </g>
+
+  <!-- Tagline -->
+  <text x="60" y="380" font-family="'IBM Plex Mono', monospace" font-size="18" fill="#5a9b7a" letter-spacing="2">
+    .::  bad jokes running as root  ·  v4.2.0  ::.
+  </text>
+
+  <!-- Stat chips -->
+  <g font-family="'IBM Plex Mono', monospace" font-size="16">
+    <!-- chip 1 -->
+    <rect x="60" y="430" width="165" height="42" fill="#0a1a13" stroke="#0aff9d" stroke-width="1.5" rx="4"/>
+    <text x="75" y="457" fill="#0aff9d">🤖 AI</text>
+    <text x="190" y="457" fill="#7fe0b8" text-anchor="end">92</text>
+
+    <rect x="240" y="430" width="195" height="42" fill="#0a1a13" stroke="#183326" stroke-width="1.5" rx="4"/>
+    <text x="255" y="457" fill="#7fe0b8">🔑 passwords</text>
+    <text x="420" y="457" fill="#5a9b7a" text-anchor="end">28</text>
+
+    <rect x="450" y="430" width="175" height="42" fill="#0a1a13" stroke="#183326" stroke-width="1.5" rx="4"/>
+    <text x="465" y="457" fill="#7fe0b8">👨‍💻 hackers</text>
+    <text x="610" y="457" fill="#5a9b7a" text-anchor="end">29</text>
+
+    <rect x="640" y="430" width="175" height="42" fill="#0a1a13" stroke="#183326" stroke-width="1.5" rx="4"/>
+    <text x="655" y="457" fill="#7fe0b8">🎣 phishing</text>
+    <text x="800" y="457" fill="#5a9b7a" text-anchor="end">11</text>
+
+    <rect x="830" y="430" width="150" height="42" fill="#0a1a13" stroke="#183326" stroke-width="1.5" rx="4"/>
+    <text x="845" y="457" fill="#7fe0b8">☁️ cloud</text>
+    <text x="965" y="457" fill="#5a9b7a" text-anchor="end">6</text>
+
+    <rect x="995" y="430" width="145" height="42" fill="#0a1a13" stroke="#183326" stroke-width="1.5" rx="4"/>
+    <text x="1010" y="457" fill="#7fe0b8">🐛 bugs</text>
+    <text x="1125" y="457" fill="#5a9b7a" text-anchor="end">8</text>
+  </g>
+
+  <!-- Sample joke, like STDOUT -->
+  <g font-family="'IBM Plex Mono', monospace">
+    <rect x="60" y="505" width="1080" height="90" fill="#0a1a13" stroke="#183326" stroke-width="1" rx="2"/>
+    <text x="75" y="530" font-size="12" fill="#5a9b7a" letter-spacing="2">┤ STDOUT ├</text>
+    <text x="1120" y="530" font-size="12" fill="#c99a2e" text-anchor="end">pid:1337</text>
+    <text x="80" y="563" font-size="22" fill="#7fe0b8">&gt; </text>
+    <text x="105" y="563" font-size="22" fill="#0aff9d">My two-factor auth takes three factors.</text>
+    <text x="105" y="588" font-size="22" fill="#0aff9d">The third is tears.</text>
+  </g>
+
+  <!-- Bottom status bar -->
+  <rect x="0" y="600" width="1200" height="30" fill="#0a1510" stroke="#183326" stroke-width="1"/>
+  <g font-family="'IBM Plex Mono', monospace" font-size="12">
+    <text x="24" y="620" fill="#5a9b7a">PID: 1337</text>
+    <text x="600" y="620" fill="#5a9b7a" text-anchor="middle">ENTRIES: <tspan fill="#0aff9d">270</tspan></text>
+    <text x="1176" y="620" fill="#5a9b7a" text-anchor="end">TOPIC: <tspan fill="#c99a2e">random</tspan></text>
+  </g>
+</svg>
